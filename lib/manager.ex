@@ -15,8 +15,8 @@ defmodule ALCHEMY.Manager do
     GenServer.cast(server, {:create, name})
   end
 
-  def push(server, name, file_item) do
-    GenServer.call(server, {:push, name, file_item})
+  def push(server, name, item) do
+    GenServer.call(server, {:push, name, item})
   end
 
   def pop(server, name) do
@@ -25,6 +25,10 @@ defmodule ALCHEMY.Manager do
 
   def peek(server, name) do
     GenServer.call(server, {:peek, name})
+  end
+
+  def size(server, name) do
+    GenServer.call(server, {:size, name})
   end
 
   @impl true
@@ -48,6 +52,19 @@ defmodule ALCHEMY.Manager do
   end
 
   @impl true
+  def handle_call({:size, name}, _from, state) do
+    {names, _} = state
+
+    case Map.fetch(names, name) do
+      {:ok, pid} ->
+        {:reply, ALCHEMY.QueueItem.size(pid), state}
+
+      :error ->
+        {:reply, {:error, :not_found}, state}
+    end
+  end
+
+  @impl true
   def handle_call({:pop, name}, _from, state) do
     {names, _} = state
 
@@ -62,12 +79,12 @@ defmodule ALCHEMY.Manager do
   end
 
   @impl true
-  def handle_call({:push, name, file_item}, _from, state) do
+  def handle_call({:push, name, item}, _from, state) do
     {names, _} = state
 
     case Map.fetch(names, name) do
       {:ok, pid} ->
-        result = ALCHEMY.QueueItem.push(pid, file_item)
+        result = ALCHEMY.QueueItem.push(pid, item)
         {:reply, result, state}
 
       :error ->

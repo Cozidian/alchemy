@@ -15,6 +15,10 @@ defmodule ALCHEMY.QueueItem do
     Agent.update(queue_item, fn stack -> [file_item | stack] end)
   end
 
+  def push(queue_item, %ALCHEMY.ChunkItem{} = chunk_item) do
+    Agent.update(queue_item, fn stack -> [chunk_item | stack] end)
+  end
+
   @doc """
   Pops an item from the stack.
   Returns `{:ok, item}` if the stack is not empty, or `{:error, :empty}` if it is.
