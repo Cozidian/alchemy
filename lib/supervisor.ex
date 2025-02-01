@@ -9,43 +9,25 @@ defmodule ALCHEMY.Supervisor do
   @impl true
   def init(:ok) do
     interval = ALCHEMY.Config.file_watcher_interval()
-    Logger.info("🔧 FileWatcher interval from config: #{interval}ms")
 
-    children =
-      [
-        {DynamicSupervisor, name: ALCHEMY.QueueItemSupervisor, strategy: :one_for_one},
-        {DynamicSupervisor, name: ALCHEMY.ProcessorSupervisor, strategy: :one_for_one},
-        {ALCHEMY.Manager, name: ALCHEMY.Manager},
-        process_children()
-      ]
-      |> List.flatten()
+    children = [
+      {ALCHEMY.Producers.FileWatcher,
+       [
+         directory: "input/",
+         interval: interval
+       ]},
+      {ALCHEMY.ProducerConsumers.TextProcessor,
+       [
+         chunk_size: 1000,
+         subscribe_to: [{ALCHEMY.Producers.FileWatcher, max_demand: 5}]
+       ]},
+      {ALCHEMY.Consumers.LoggerConsumer,
+       [
+         chunk_size: 1000,
+         subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 10}]
+       ]}
+    ]
 
-    Supervisor.init(children, strategy: :one_for_all)
-  end
-
-  defp process_children do
-    if ALCHEMY.Config.start_file_watcher?() do
-      queue_name = "file_queue"
-      interval = ALCHEMY.Config.file_watcher_interval()
-
-      Logger.info("Starting FileWatcher with interval: #{interval}ms")
-
-      [
-        {ALCHEMY.FileWatcher,
-         [
-           directory: "input/",
-           interval: interval,
-           queue_name: queue_name
-         ]},
-        {ALCHEMY.TextProcessor,
-         [
-           interval: :timer.seconds(5),
-           source_queue: queue_name,
-           chunk_size: 1000
-         ]}
-      ]
-    else
-      []
-    end
+    Supervisor.init(children, strategy: :rest_for_one)
   end
 end
