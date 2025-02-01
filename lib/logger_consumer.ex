@@ -8,14 +8,15 @@ defmodule ALCHEMY.Consumers.LoggerConsumer do
   end
 
   def init(opts) do
-    subscribe_to = Keyword.get(opts, :subscribe_to, [ALCHEMY.ProducerConsumers.TextProcessor])
+    subscribe_to =
+      Keyword.get(opts, :subscribe_to, [ALCHEMY.ProducerConsumers.EmbeddingProcessor])
 
     {:consumer, :ok, subscribe_to: subscribe_to}
   end
 
-  def handle_events(chunks, _from, state) do
-    for chunk <- chunks do
-      Logger.info("Received chunk: #{inspect(chunk)}")
+  def handle_events(processed_chunks, _from, state) do
+    for chunk <- processed_chunks do
+      Logger.info("Received embedded chunk: #{inspect(chunk)}")
     end
 
     {:noreply, [], state}

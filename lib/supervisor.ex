@@ -21,10 +21,15 @@ defmodule ALCHEMY.Supervisor do
          chunk_size: 1000,
          subscribe_to: [{ALCHEMY.Producers.FileWatcher, max_demand: 5}]
        ]},
+      {ALCHEMY.ProducerConsumers.EmbeddingProcessor,
+       [
+         embedding_api: "http://localhost:11434/api/embed",
+         subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 5}]
+       ]},
       {ALCHEMY.Consumers.LoggerConsumer,
        [
          chunk_size: 1000,
-         subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 10}]
+         subscribe_to: [{ALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]
        ]}
     ]
 
