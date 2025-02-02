@@ -11,6 +11,8 @@ defmodule ALCHEMY.Supervisor do
     interval = ALCHEMY.Config.file_watcher_interval()
 
     children = [
+      # Start Repo first
+      ALCHEMY.Repo,
       {ALCHEMY.Producers.FileWatcher,
        [
          directory: "input/",
@@ -25,6 +27,10 @@ defmodule ALCHEMY.Supervisor do
        [
          embedding_api: "http://localhost:11434/api/embed",
          subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 5}]
+       ]},
+      {ALCHEMY.Consumers.VectorConsumer,
+       [
+         subscribe_to: [{ALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]
        ]},
       {ALCHEMY.Consumers.LoggerConsumer,
        [
