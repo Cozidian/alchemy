@@ -28,6 +28,10 @@ defmodule ALCHEMY.Supervisor do
          embedding_api: "http://localhost:11434/api/embed",
          subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 5}]
        ]},
+      {ALCHEMY.LlmQueryServer,
+       [
+         ollama_api: "http://localhost:11434/api/generate"
+       ]},
       {ALCHEMY.Consumers.VectorConsumer,
        [
          subscribe_to: [{ALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]

@@ -2,6 +2,7 @@ defmodule ALCHEMY.Consumers.VectorConsumer do
   use GenStage
   alias ALCHEMY.Repo
   alias ALCHEMY.Schemas.Item
+  require Logger
 
   def start_link(opts \\ []) do
     name = Keyword.get(opts, :name, __MODULE__)
@@ -18,30 +19,50 @@ defmodule ALCHEMY.Consumers.VectorConsumer do
 
   @impl true
   def handle_events(processed_chunks, _from, state) do
-    Enum.each(processed_chunks, fn chunk ->
-      case chunk.meta_data do
-        {"embedding", embedding_data} ->
-          case extract_embedding(embedding_data) do
-            nil ->
-              require Logger
-              Logger.warn("Embedding data missing actual embedding: #{inspect(embedding_data)}")
+    Logger.info("Recieved #{length(processed_chunks)} chunks to process")
 
-            embedding ->
-              changeset =
-                Item.changeset(%Item{}, %{
-                  chunk: chunk.chunk,
-                  embedding: Pgvector.new(embedding),
-                  metadata: Map.drop(embedding_data, ["embedding", "embeddings"])
-                })
+    results =
+      Enum.map(processed_chunks, fn chunk ->
+        case chunk.meta_data do
+          {"embedding", embedding_data} ->
+            case extract_embedding(embedding_data) do
+              nil ->
+                Logger.warning(
+                  "Embedding data missing actual embedding: #{inspect(embedding_data)}"
+                )
 
-              Repo.insert!(changeset)
-          end
+                {:error, :missing_embedding}
 
-        _ ->
-          require Logger
-          Logger.warn("Received chunk without valid embedding data: #{inspect(chunk)}")
-      end
-    end)
+              embedding ->
+                changeset =
+                  Item.changeset(%Item{}, %{
+                    chunk: chunk.chunk,
+                    embedding: Pgvector.new(embedding),
+                    metadata: Map.drop(embedding_data, ["embedding", "embeddings"])
+                  })
+
+                case Repo.insert(changeset) do
+                  {:ok, item} ->
+                    {:ok, item}
+
+                  {:error, error} ->
+                    Logger.error("Failed to insert chunk: #{inspect(error)}")
+                    {:error, error}
+                end
+            end
+
+          _ ->
+            Logger.warning("Received chunk without valid embedding data: #{inspect(chunk)}")
+        end
+      end)
+
+    successful =
+      Enum.count(results, fn
+        {:ok, _} -> true
+        _ -> false
+      end)
+
+    Logger.info("Successfully processed #{successful} out of #{length(processed_chunks)}")
 
     {:noreply, [], state}
   end

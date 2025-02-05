@@ -21,6 +21,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessor do
       |> Enum.flat_map(&process_file(&1, state.chunk_size))
       |> Enum.map(&create_chunk_item/1)
 
+    # Logger.info("filename: #{files.name} is chunked into: #{length(chunks)}")
     {:noreply, chunks, state}
   end
 
