@@ -4,14 +4,19 @@ defmodule ALCHEMY.LlmQueryServer do
 
   @default_timeout 30_000
   @chat_url "http://localhost:11434/api/chat"
+  @embedding_url "http://localhost:11434/api/embed"
 
-  def start_link(opts) do
+  def(start_link(opts)) do
     name = Keyword.get(opts, :name, __MODULE__)
     GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   def query(prompt, timeout \\ @default_timeout) do
     GenServer.call(__MODULE__, {:query, prompt}, timeout)
+  end
+
+  def query_with_context(prompt, timeout \\ @default_timeout) do
+    GenServer.call(__MODULE__, {:query_with_context, prompt}, timeout)
   end
 
   def stream(prompt) do
@@ -26,6 +31,18 @@ defmodule ALCHEMY.LlmQueryServer do
   def handle_call({:query, prompt}, _from, state) do
     response = query_ollama(prompt, state.ollama_api)
     {:reply, response, state}
+  end
+
+  def handle_call({:query_with_context, prompt}, _from, state) do
+    with {:ok, embedding} <- get_embedding(prompt),
+         similar_chunks <- find_similar_chunks(embedding),
+         context = build_context(similar_chunks),
+         enriched_prompt = build_prompt_with_context(prompt, context),
+         {:ok, response} <- query_ollama(enriched_prompt, state.ollama_api) do
+      {:reply, {:ok, response}, state}
+    else
+      error -> {:reply, error, state}
+    end
   end
 
   def handle_call({:stream, prompt}, _from, state) do
@@ -54,6 +71,64 @@ defmodule ALCHEMY.LlmQueryServer do
       {:error, reason} ->
         IO.puts("Error making request: #{inspect(reason)}")
     end
+  end
+
+  defp get_embedding(text) do
+    body =
+      Jason.encode!(%{
+        "model" => "mxbai-embed-large",
+        "input" => text
+      })
+
+    headers = [{"Content-Type", "application/json"}]
+
+    case HTTPoison.post(@embedding_url, body, headers) do
+      {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
+        case Jason.decode(response_body) do
+          {:ok, decoded_response} ->
+            # Extract the embedding from the decoded response
+            case decoded_response do
+              %{"embedding" => embedding} -> {:ok, embedding}
+              %{"embeddings" => [embedding | _]} -> {:ok, embedding}
+              response when is_list(response) -> {:ok, response}
+              _ -> {:error, :invalid_embedding_response}
+            end
+
+          error ->
+            error
+        end
+
+      {:ok, %HTTPoison.Response{status_code: status_code}} ->
+        Logger.error("Embedding API returned status code: #{status_code}")
+        {:error, :embedding_failed}
+
+      {:error, %HTTPoison.Error{reason: reason}} ->
+        Logger.error("Failed to get embedding: #{inspect(reason)}")
+        {:error, :embedding_failed}
+    end
+  end
+
+  defp find_similar_chunks(embedding) do
+    vector = Pgvector.new(embedding)
+
+    ALCHEMY.Schemas.Item
+    |> ALCHEMY.Schemas.Item.search_chunk(vector)
+    |> ALCHEMY.Repo.all()
+  end
+
+  defp build_context(similar_chunks) do
+    similar_chunks
+    |> Enum.map_join("\n", & &1.content)
+  end
+
+  defp build_prompt_with_context(prompt, context) do
+    """
+    Context information:
+    #{context}
+
+    Based on the above context, please respond to:
+    #{prompt}
+    """
   end
 
   defp ensure_dependencies_started do
