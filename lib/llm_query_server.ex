@@ -19,6 +19,10 @@ defmodule ALCHEMY.LlmQueryServer do
     GenServer.call(__MODULE__, {:query_with_context, prompt}, timeout)
   end
 
+  def stream_with_context(prompt) do
+    GenServer.call(__MODULE__, {:stream_with_context, prompt}, 10_000)
+  end
+
   def stream(prompt) do
     GenServer.call(__MODULE__, {:stream, prompt}, 10_000)
   end
@@ -39,6 +43,18 @@ defmodule ALCHEMY.LlmQueryServer do
          context = build_context(similar_chunks),
          enriched_prompt = build_prompt_with_context(prompt, context),
          {:ok, response} <- query_ollama(enriched_prompt, state.ollama_api) do
+      {:reply, {:ok, response}, state}
+    else
+      error -> {:reply, error, state}
+    end
+  end
+
+  def handle_call({:stream_with_context, prompt}, _from, state) do
+    with {:ok, embedding} <- get_embedding(prompt),
+         similar_chunks <- find_similar_chunks(embedding),
+         context = build_context(similar_chunks),
+         enriched_prompt = build_prompt_with_context(prompt, context),
+         {:ok, response} <- chat_with_model(enriched_prompt) do
       {:reply, {:ok, response}, state}
     else
       error -> {:reply, error, state}
