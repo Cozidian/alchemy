@@ -201,17 +201,11 @@ defmodule ALCHEMY.LlmQueryServer do
 
     headers = [{"Content-Type", "application/json"}]
 
-    case HTTPoison.post(ollama_api, body, headers, recv_timeout: @default_timeout) do
-      {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
-        case Jason.decode(response_body) do
-          {:ok, decoded} ->
-            {:ok, Map.get(decoded, "response")}
-
-          {:error, error} ->
-            Logger.error("Failed to decode Ollama response: #{inspect(error)}")
-            {:error, :invalid_response}
-        end
-
+    with {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} <-
+           HTTPoison.post(ollama_api, body, headers, recv_timeout: @default_timeout),
+         {:ok, decoded} <- Jason.decode(response_body) do
+      {:ok, Map.get(decoded, "response")}
+    else
       {:ok, %HTTPoison.Response{status_code: status_code, body: body}} ->
         Logger.error("Ollama API returned #{status_code}: #{body}")
         {:error, :api_error}
@@ -219,6 +213,10 @@ defmodule ALCHEMY.LlmQueryServer do
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("Failed to query Ollama: #{inspect(reason)}")
         {:error, reason}
+
+      {:error, error} ->
+        Logger.error("Failed to decode Ollama response: #{inspect(error)}")
+        {:error, :invalid_response}
     end
   end
 end
