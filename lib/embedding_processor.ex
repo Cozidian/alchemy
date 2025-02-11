@@ -27,17 +27,12 @@ defmodule ALCHEMY.ProducerConsumers.EmbeddingProcessor do
 
         headers = [{"Content-Type", "application/json"}]
 
-        case HTTPoison.post(state.embedding_api, body, headers) do
-          {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} ->
-            case Jason.decode(response_body) do
-              {:ok, decoded_response} ->
-                %{chunk | meta_data: {"embedding", decoded_response}}
-
-              {:error, decode_error} ->
-                Logger.error("Failed to decode response: #{inspect(decode_error)}")
-                chunk
-            end
-
+        with {:ok, %HTTPoison.Response{status_code: 200, body: response_body}} <-
+               HTTPoison.post(state.embedding_api, body, headers),
+             {:ok, decoded_response} <-
+               Jason.decode(response_body) do
+          %{chunk | meta_data: {"embedding", decoded_response}}
+        else
           {:ok, %HTTPoison.Response{status_code: status_code}} ->
             Logger.error("Embedding API returned status code: #{status_code}")
             chunk
@@ -45,6 +40,10 @@ defmodule ALCHEMY.ProducerConsumers.EmbeddingProcessor do
           {:error, %HTTPoison.Error{reason: reason}} ->
             Logger.error("Failed to embed chunk: #{Exception.message(reason)}")
             chunk
+
+          {:error, error} ->
+            Logger.error("Failed to decode Ollama response: #{inspect(error)}")
+            {:error, :invalid_response}
         end
       end)
 

@@ -54,7 +54,7 @@ defmodule ALCHEMY.LlmQueryServer do
          similar_chunks <- find_similar_chunks(embedding),
          context = build_context(similar_chunks),
          enriched_prompt = build_prompt_with_context(prompt, context),
-         {:ok, response} <- chat_with_model(enriched_prompt) do
+         response <- chat_with_model(enriched_prompt) do
       {:reply, {:ok, response}, state}
     else
       error -> {:reply, error, state}
