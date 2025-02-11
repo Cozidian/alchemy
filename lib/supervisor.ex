@@ -8,15 +8,12 @@ defmodule ALCHEMY.Supervisor do
 
   @impl true
   def init(:ok) do
-    interval = ALCHEMY.Config.file_watcher_interval()
-
     children = [
       # Start Repo first
       ALCHEMY.Repo,
       {ALCHEMY.Producers.FileWatcher,
        [
-         directory: "input/",
-         interval: interval
+         directory: "input/"
        ]},
       {ALCHEMY.ProducerConsumers.TextProcessor,
        [

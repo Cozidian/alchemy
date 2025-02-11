@@ -9,7 +9,6 @@ defmodule ALCHEMY.Producers.FileWatcher do
 
   def init(opts) do
     directory = Keyword.get(opts, :directory, "input/")
-    interval = Keyword.get(opts, :interval, :timer.seconds(10))
 
     File.mkdir_p!(directory)
     {:ok, watcher_pid} = FileSystem.start_link(dirs: [directory])
@@ -18,7 +17,6 @@ defmodule ALCHEMY.Producers.FileWatcher do
     {:producer,
      %{
        directory: directory,
-       interval: interval,
        processed_files: MapSet.new(),
        demand: 0
      }}
