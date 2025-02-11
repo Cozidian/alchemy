@@ -23,36 +23,28 @@ defmodule ALCHEMY.Consumers.VectorConsumer do
 
     results =
       Enum.map(processed_chunks, fn chunk ->
-        case chunk.meta_data do
-          {"embedding", embedding_data} ->
-            case extract_embedding(embedding_data) do
-              nil ->
-                Logger.warning(
-                  "Embedding data missing actual embedding: #{inspect(embedding_data)}"
-                )
+        with {"embedding", embedding_data} <- chunk.meta_data,
+             embedding when not is_nil(embedding) <- extract_embedding(embedding_data),
+             changeset =
+               Item.changeset(%Item{}, %{
+                 chunk: chunk.chunk,
+                 embedding: Pgvector.new(embedding),
+                 metadata: Map.drop(embedding_data, ["embedding", "embeddings"])
+               }),
+             {:ok, item} <- Repo.insert(changeset) do
+          {:ok, item}
+        else
+          nil ->
+            Logger.warning("Embedding data missing actual embedding: #{inspect(chunk.meta_data)}")
+            {:error, :missing_embedding}
 
-                {:error, :missing_embedding}
+          {:error, error} ->
+            Logger.error("Failed to insert chunk: #{inspect(error)}")
+            {:error, error}
 
-              embedding ->
-                changeset =
-                  Item.changeset(%Item{}, %{
-                    chunk: chunk.chunk,
-                    embedding: Pgvector.new(embedding),
-                    metadata: Map.drop(embedding_data, ["embedding", "embeddings"])
-                  })
-
-                case Repo.insert(changeset) do
-                  {:ok, item} ->
-                    {:ok, item}
-
-                  {:error, error} ->
-                    Logger.error("Failed to insert chunk: #{inspect(error)}")
-                    {:error, error}
-                end
-            end
-
-          _ ->
+          other ->
             Logger.warning("Received chunk without valid embedding data: #{inspect(chunk)}")
+            other
         end
       end)
 
