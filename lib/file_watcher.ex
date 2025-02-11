@@ -11,10 +11,9 @@ defmodule ALCHEMY.Producers.FileWatcher do
     directory = Keyword.get(opts, :directory, "input/")
     interval = Keyword.get(opts, :interval, :timer.seconds(10))
 
-    # Ensure directory exists
     File.mkdir_p!(directory)
-
-    schedule_check(interval)
+    {:ok, watcher_pid} = FileSystem.start_link(dirs: [directory])
+    FileSystem.subscribe(watcher_pid)
 
     {:producer,
      %{
@@ -31,19 +30,13 @@ defmodule ALCHEMY.Producers.FileWatcher do
     {:noreply, files, state}
   end
 
-  def handle_info(:check_directory, state) do
-    {files, new_state} = get_files(state)
-    schedule_check(state.interval)
-
-    if files == [] do
-      Logger.info("No new files to process")
+  def handle_info({:file_event, _watcher_pid, {_path, events}}, state) do
+    if :created in events or :modified in events do
+      {files, new_state} = get_files(state)
+      {:noreply, files, new_state}
+    else
+      {:noreply, state}
     end
-
-    {:noreply, files, new_state}
-  end
-
-  defp schedule_check(interval) do
-    Process.send_after(self(), :check_directory, interval)
   end
 
   defp get_files(%{demand: demand, processed_files: processed} = state) when demand > 0 do
