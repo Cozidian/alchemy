@@ -6,6 +6,9 @@ This is not meant for production, but feel free to clone or fork it and make the
 
 ## Quick Start
 
+> [!IMPORTANT]
+> You need to have elixir 1.18 and erlang 27 installed on your machine.
+
 ```bash
 # pull down the dependencies
 mix get.deps
@@ -38,7 +41,3 @@ ALCHEMY.LlmQueryServer.stream_with_context("What is my name?")
 ## Adding context
 
 You do this simply as adding .txt files to the input folder. If the folder does not exist, you can create it.
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at <https://hexdocs.pm/alchemy>.
