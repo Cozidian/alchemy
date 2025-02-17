@@ -13,7 +13,7 @@ defmodule ALCHEMY.Supervisor do
       ALCHEMY.Repo,
       {ALCHEMY.Producers.FileWatcher,
        [
-         directory: "input/"
+         directory: Application.get_env(:alchemy, :data_dir)
        ]},
       {ALCHEMY.ProducerConsumers.TextProcessor,
        [
@@ -22,12 +22,12 @@ defmodule ALCHEMY.Supervisor do
        ]},
       {ALCHEMY.ProducerConsumers.EmbeddingProcessor,
        [
-         embedding_api: "http://localhost:11434/api/embed",
+         embedding_api: Application.get_env(:alchemy, :embedding_api),
          subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 5}]
        ]},
       {ALCHEMY.LlmQueryServer,
        [
-         ollama_api: "http://localhost:11434/api/generate"
+         ollama_api: Application.get_env(:alchemy, :ollama_api)
        ]},
       {ALCHEMY.Consumers.VectorConsumer,
        [
