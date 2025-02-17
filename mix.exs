@@ -29,7 +29,8 @@ defmodule ALCHEMY.MixProject do
       {:ecto_sql, "~> 3.0"},
       {:postgrex, ">= 0.0.0"},
       {:pgvector, "~> 0.3.0"},
-      {:file_system, "~> 1.0"}
+      {:file_system, "~> 1.0"},
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
   end
 end

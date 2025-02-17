@@ -4,48 +4,40 @@ This is a project I have used for learning about running LLM locally with the ab
 
 This is not meant for production, but feel free to clone or fork it and make the adjustments you need for the purpose you need.
 
-## How to use it
+## Quick Start
 
 ```bash
-git clone
-```
-
-pull down the dependencies needed
-
-```bash
+# pull down the dependencies
 mix get.deps
 ```
 
-compile the project
-
 ```bash
+# compile the project
 mix compile
 ```
 
-run the project in interactive mode
-
 ```bash
+# run the project
 iex -S mix
 ```
 
-call the function with the text you want to generate a completion for
-
 ```elixir
+# run a query (without streaming response)
+ALCHEMY.LlmQueryServer.query("hello")
+
+# run a query with added context (without streaming response)
+ALCHEMY.LlmQueryServer.query_with_context("hello")
+
+# run a query with streaming response
 ALCHEMY.LlmQueryServer.stream("What is my name?")
+
+# run a query with added context and streaming response
+ALCHEMY.LlmQueryServer.stream_with_context("What is my name?")
 ```
 
-````elixir
+## Adding context
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `alchemy` to your list of dependencies in `mix.exs`:
-
-```elixir
-def deps do
-  [
-    {:alchemy, "~> 0.1.0"}
-  ]
-end
-````
+You do this simply as adding .txt files to the input folder. If the folder does not exist, you can create it.
 
 Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
