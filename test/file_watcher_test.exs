@@ -1,89 +1,90 @@
 defmodule ALCHEMY.Producers.FileWatcherTest do
   use ExUnit.Case, async: true
   require Logger
-  alias ALCHEMY.Test.TestConsumer
 
   setup do
-    # Create a temporary directory for test files
     test_dir = "test/temp/#{:erlang.unique_integer()}"
     File.mkdir_p!(test_dir)
 
-    # Start the FileWatcher with our test directory
     test_name = :"file_watcher_#{:erlang.unique_integer()}"
 
-    opts = [
-      name: test_name,
-      directory: test_dir,
-      interval: 100
-    ]
+    {:ok, watcher} =
+      start_supervised(
+        {ALCHEMY.Producers.FileWatcher,
+         [
+           directory: test_dir,
+           name: test_name
+         ]}
+      )
 
-    {:ok, watcher} = start_supervised({ALCHEMY.Producers.FileWatcher, opts})
+    {:ok, consumer} =
+      start_supervised(
+        {TestConsumer,
+         [
+           producer: watcher,
+           test_pid: self()
+         ]}
+      )
 
-    # Create a test consumer to receive files
-    test_consumer = start_supervised!({TestConsumer, subscribe_to: [{watcher, max_demand: 1}]})
+    Process.sleep(100)
 
     on_exit(fn ->
       File.rm_rf!(test_dir)
     end)
 
-    %{
-      test_dir: test_dir,
-      watcher: watcher,
-      consumer: test_consumer
-    }
+    %{test_dir: test_dir, watcher: watcher, consumer: consumer}
   end
 
-  test "detects new text files", %{test_dir: test_dir, consumer: consumer} do
-    # Create a test file
+  test "detects new text files", %{test_dir: test_dir} do
     test_file = Path.join(test_dir, "test.txt")
     File.write!(test_file, "test content")
 
-    # Wait for processing
-    assert_receive {:file_received, file_item}, 1000
+    assert_receive {:events, [file_item]}, 2000
+
     assert file_item.filename == "test.txt"
     assert file_item.filelocation == Path.expand(test_file)
+    assert %DateTime{} = file_item.timestamp
   end
 
   test "ignores non-txt files", %{test_dir: test_dir} do
-    # Create non-txt file
     File.write!(Path.join(test_dir, "test.pdf"), "test content")
 
-    # Should not receive any files
-    refute_receive {:file_received, _}, 500
+    refute_receive {:events, _}, 1000
   end
 
   test "handles multiple files", %{test_dir: test_dir} do
-    # Create multiple files
     File.write!(Path.join(test_dir, "test1.txt"), "content 1")
     File.write!(Path.join(test_dir, "test2.txt"), "content 2")
 
-    # Collect received files
-    assert_receive {:file_received, file1}, 1000
-    assert_receive {:file_received, file2}, 1000
+    assert_receive {:events, files}, 2000
 
-    filenames = [file1.filename, file2.filename] |> Enum.sort()
+    assert length(files) == 2
+
+    filenames = files |> Enum.map(& &1.filename) |> Enum.sort()
     assert filenames == ["test1.txt", "test2.txt"]
   end
-end
 
-# Test Consumer for FileWatcher
-defmodule TestConsumer do
-  use GenStage
+  test "handles multiple mixed file types", %{test_dir: test_dir} do
+    File.write!(Path.join(test_dir, "test1.txt"), "content 1")
+    File.write!(Path.join(test_dir, "test2.txt"), "content 2")
+    File.write!(Path.join(test_dir, "test3.pdf"), "content 3")
 
-  def start_link(opts) do
-    GenStage.start_link(__MODULE__, opts)
+    assert_receive {:events, files}, 2000
+
+    assert length(files) == 2
+
+    filenames = files |> Enum.map(& &1.filename) |> Enum.sort()
+    assert filenames == ["test1.txt", "test2.txt"]
   end
 
-  def init(opts) do
-    {:consumer, :ok, opts}
-  end
+  test "doesn't process the same file twice", %{test_dir: test_dir} do
+    test_file = Path.join(test_dir, "test.txt")
 
-  def handle_events(events, _from, state) do
-    # Send received files to test process
-    Enum.each(events, fn event ->
-      send(Process.group_leader(), {:file_received, event})
-    end)
+    File.write!(test_file, "initial content")
+    assert_receive {:events, [_file_item]}, 2000
 
-    {:noreply, [], state}
+    File.write!(test_file, "modified content")
+
+    refute_receive {:events, _}, 1000
   end
 end
