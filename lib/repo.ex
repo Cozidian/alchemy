@@ -1,5 +1,5 @@
-defmodule ALCHEMY.Repo do
+defmodule DEMOALCHEMY.Repo do
   use Ecto.Repo,
-    otp_app: :alchemy,
+    otp_app: :demo_alchemy,
     adapter: Ecto.Adapters.Postgres
 end

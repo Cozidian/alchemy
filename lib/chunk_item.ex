@@ -1,4 +1,4 @@
-defmodule ALCHEMY.ChunkItem do
+defmodule DEMOALCHEMY.ChunkItem do
   @type t :: %__MODULE__{
           chunk: String.t(),
           meta_data: {String.t(), String.t()} | nil,

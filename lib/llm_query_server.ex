@@ -1,4 +1,4 @@
-defmodule ALCHEMY.LlmQueryServer do
+defmodule DEMOALCHEMY.LlmQueryServer do
   use GenServer
   require Logger
 
@@ -127,9 +127,9 @@ defmodule ALCHEMY.LlmQueryServer do
   defp find_similar_chunks(embedding) do
     vector = Pgvector.new(embedding)
 
-    ALCHEMY.Schemas.Item
-    |> ALCHEMY.Schemas.Item.search_chunk(vector)
-    |> ALCHEMY.Repo.all()
+    DEMOALCHEMY.Schemas.Item
+    |> DEMOALCHEMY.Schemas.Item.search_chunk(vector)
+    |> DEMOALCHEMY.Repo.all()
   end
 
   defp build_context(similar_chunks) do

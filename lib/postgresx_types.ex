@@ -1,5 +1,5 @@
 Postgrex.Types.define(
-  ALCHEMY.PostgrexTypes,
+  DEMOALCHEMY.PostgrexTypes,
   Pgvector.extensions() ++ Ecto.Adapters.Postgres.extensions(),
   []
 )

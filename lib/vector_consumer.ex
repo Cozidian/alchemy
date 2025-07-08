@@ -1,7 +1,7 @@
-defmodule ALCHEMY.Consumers.VectorConsumer do
+defmodule DEMOALCHEMY.Consumers.VectorConsumer do
   use GenStage
-  alias ALCHEMY.Repo
-  alias ALCHEMY.Schemas.Item
+  alias DEMOALCHEMY.Repo
+  alias DEMOALCHEMY.Schemas.Item
   require Logger
 
   def start_link(opts \\ []) do
@@ -12,7 +12,7 @@ defmodule ALCHEMY.Consumers.VectorConsumer do
   @impl true
   def init(opts) do
     subscribe_to =
-      Keyword.get(opts, :subscribe_to, [ALCHEMY.ProducerConsumers.EmbeddingProcessor])
+      Keyword.get(opts, :subscribe_to, [DEMOALCHEMY.ProducerConsumers.EmbeddingProcessor])
 
     {:consumer, :ok, subscribe_to: subscribe_to}
   end
