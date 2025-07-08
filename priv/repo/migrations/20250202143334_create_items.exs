@@ -1,4 +1,4 @@
-defmodule ALCHEMY.Repo.Migrations.CreateItems do
+defmodule DEMOALCHEMY.Repo.Migrations.CreateItems do
   use Ecto.Migration
 
   def up do

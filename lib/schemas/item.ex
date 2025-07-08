@@ -1,4 +1,4 @@
-defmodule ALCHEMY.Schemas.Item do
+defmodule DEMOALCHEMY.Schemas.Item do
   use Ecto.Schema
   import Ecto.Changeset
   import Ecto.Query

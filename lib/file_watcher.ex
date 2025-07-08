@@ -1,4 +1,4 @@
-defmodule ALCHEMY.Producers.FileWatcher do
+defmodule DEMOALCHEMY.Producers.FileWatcher do
   use GenStage
   require Logger
 
@@ -61,7 +61,7 @@ defmodule ALCHEMY.Producers.FileWatcher do
   end
 
   defp create_file_item(file) do
-    %ALCHEMY.FileItem{
+    %DEMOALCHEMY.FileItem{
       filename: Path.basename(file),
       filelocation: file,
       timestamp: DateTime.utc_now()

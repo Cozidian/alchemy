@@ -1,4 +1,4 @@
-defmodule ALCHEMY.Consumers.LoggerConsumer do
+defmodule DEMOALCHEMY.Consumers.LoggerConsumer do
   use GenStage
   require Logger
 
@@ -9,7 +9,7 @@ defmodule ALCHEMY.Consumers.LoggerConsumer do
 
   def init(opts) do
     subscribe_to =
-      Keyword.get(opts, :subscribe_to, [ALCHEMY.ProducerConsumers.EmbeddingProcessor])
+      Keyword.get(opts, :subscribe_to, [DEMOALCHEMY.ProducerConsumers.EmbeddingProcessor])
 
     {:consumer, :ok, subscribe_to: subscribe_to}
   end

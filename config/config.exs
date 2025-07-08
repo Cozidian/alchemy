@@ -1,13 +1,13 @@
 import Config
-config :alchemy, ecto_repos: [ALCHEMY.Repo]
+config :demo_alchemy, ecto_repos: [DEMOALCHEMY.Repo]
 
-defmodule ALCHEMY.Config do
+defmodule DEMOALCHEMY.Config do
   def file_watcher_interval do
-    Application.get_env(:alchemy, :file_watcher_interval, :timer.seconds(10))
+    Application.get_env(:demo_alchemy, :file_watcher_interval, :timer.seconds(10))
   end
 
   def start_file_watcher? do
-    Application.get_env(:alchemy, :start_file_watcher, true)
+    Application.get_env(:demo_alchemy, :start_file_watcher, true)
   end
 end
 

@@ -1,4 +1,4 @@
-defmodule ALCHEMY.ProducerConsumers.TextProcessor do
+defmodule DEMOALCHEMY.ProducerConsumers.TextProcessor do
   use GenStage
   require Logger
 
@@ -10,7 +10,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessor do
   def init(opts) do
     chunk_size = Keyword.get(opts, :chunk_size, 1000)
 
-    subscribe_to = Keyword.get(opts, :subscribe_to, [ALCHEMY.Producers.FileWatcher])
+    subscribe_to = Keyword.get(opts, :subscribe_to, [DEMOALCHEMY.Producers.FileWatcher])
 
     {:producer_consumer, %{chunk_size: chunk_size}, subscribe_to: subscribe_to}
   end
@@ -60,7 +60,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessor do
   end
 
   defp create_chunk_item(chunk) do
-    %ALCHEMY.ChunkItem{
+    %DEMOALCHEMY.ChunkItem{
       chunk: chunk,
       meta_data: nil,
       timestamp: DateTime.utc_now()

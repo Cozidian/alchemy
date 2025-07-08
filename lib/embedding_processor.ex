@@ -1,4 +1,4 @@
-defmodule ALCHEMY.ProducerConsumers.EmbeddingProcessor do
+defmodule DEMOALCHEMY.ProducerConsumers.EmbeddingProcessor do
   use GenStage
   use HTTPoison.Base
   require Logger
@@ -11,7 +11,7 @@ defmodule ALCHEMY.ProducerConsumers.EmbeddingProcessor do
   def init(opts) do
     embedding_api = Keyword.get(opts, :embedding_api, "")
 
-    subscribe_to = Keyword.get(opts, :subscribe_to, [ALCHEMY.ProducerConsumers.TextProcessor])
+    subscribe_to = Keyword.get(opts, :subscribe_to, [DEMOALCHEMY.ProducerConsumers.TextProcessor])
 
     {:producer_consumer, %{embedding_api: embedding_api}, subscribe_to: subscribe_to}
   end

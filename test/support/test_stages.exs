@@ -1,4 +1,4 @@
-# defmodule ALCHEMY.Test.TestProducer do
+# defmodule DEMOALCHEMY.Test.TestProducer do
 #   use GenStage
 #
 #   def start_link(_opts) do
@@ -33,7 +33,7 @@
 #   end
 # end
 #
-# defmodule ALCHEMY.Test.TestConsumer do
+# defmodule DEMOALCHEMY.Test.TestConsumer do
 #   use GenStage
 #
 #   def start_link(opts) do

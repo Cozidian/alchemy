@@ -1,4 +1,4 @@
-defmodule ALCHEMY.FileItem do
+defmodule DEMOALCHEMY.FileItem do
   @type t :: %__MODULE__{
           filename: String.t(),
           filelocation: String.t(),

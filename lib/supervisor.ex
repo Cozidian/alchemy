@@ -1,4 +1,4 @@
-defmodule ALCHEMY.Supervisor do
+defmodule DEMOALCHEMY.Supervisor do
   use Supervisor
   require Logger
 
@@ -10,33 +10,33 @@ defmodule ALCHEMY.Supervisor do
   def init(:ok) do
     children = [
       # Start Repo first
-      ALCHEMY.Repo,
-      {ALCHEMY.Producers.FileWatcher,
+      DEMOALCHEMY.Repo,
+      {DEMOALCHEMY.Producers.FileWatcher,
        [
-         directory: Application.get_env(:alchemy, :data_dir)
+         directory: Application.get_env(:demo_alchemy, :data_dir)
        ]},
-      {ALCHEMY.ProducerConsumers.TextProcessor,
+      {DEMOALCHEMY.ProducerConsumers.TextProcessor,
        [
          chunk_size: 1000,
-         subscribe_to: [{ALCHEMY.Producers.FileWatcher, max_demand: 5}]
+         subscribe_to: [{DEMOALCHEMY.Producers.FileWatcher, max_demand: 5}]
        ]},
-      {ALCHEMY.ProducerConsumers.EmbeddingProcessor,
+      {DEMOALCHEMY.ProducerConsumers.EmbeddingProcessor,
        [
-         embedding_api: Application.get_env(:alchemy, :embedding_api),
-         subscribe_to: [{ALCHEMY.ProducerConsumers.TextProcessor, max_demand: 5}]
+         embedding_api: Application.get_env(:demo_alchemy, :embedding_api),
+         subscribe_to: [{DEMOALCHEMY.ProducerConsumers.TextProcessor, max_demand: 5}]
        ]},
-      {ALCHEMY.LlmQueryServer,
+      {DEMOALCHEMY.LlmQueryServer,
        [
-         ollama_api: Application.get_env(:alchemy, :ollama_api)
+         ollama_api: Application.get_env(:demo_alchemy, :ollama_api)
        ]},
-      {ALCHEMY.Consumers.VectorConsumer,
+      {DEMOALCHEMY.Consumers.VectorConsumer,
        [
-         subscribe_to: [{ALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]
+         subscribe_to: [{DEMOALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]
        ]},
-      {ALCHEMY.Consumers.LoggerConsumer,
+      {DEMOALCHEMY.Consumers.LoggerConsumer,
        [
          chunk_size: 1000,
-         subscribe_to: [{ALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]
+         subscribe_to: [{DEMOALCHEMY.ProducerConsumers.EmbeddingProcessor, max_demand: 10}]
        ]}
     ]
 

@@ -1,4 +1,4 @@
-defmodule ALCHEMY.Producers.FileWatcherTest do
+defmodule DEMOALCHEMY.Producers.FileWatcherTest do
   use ExUnit.Case, async: true
   require Logger
 
@@ -10,7 +10,7 @@ defmodule ALCHEMY.Producers.FileWatcherTest do
 
     {:ok, watcher} =
       start_supervised(
-        {ALCHEMY.Producers.FileWatcher,
+        {DEMOALCHEMY.Producers.FileWatcher,
          [
            directory: test_dir,
            name: test_name
