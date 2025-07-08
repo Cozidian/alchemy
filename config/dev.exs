@@ -9,7 +9,7 @@ config :demo_alchemy, :data_dir, "input/"
 config :demo_alchemy, :ollama_timeout, 30_000
 
 config :demo_alchemy, DEMOALCHEMY.Repo,
-  # "alchemy_dev",
+  # "demo_alchemy_dev",
   database: System.get_env("DEMOALCHEMY_DB_NAME"),
   username: System.get_env("DEMOALCHEMY_DB_USERNAME"),
   password: System.get_env("DEMOALCHEMY_DB_PASSWORD"),
