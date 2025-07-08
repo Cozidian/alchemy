@@ -1,4 +1,4 @@
-defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
+defmodule DEMOALCHEMY.ProducerConsumers.TextProcessorTest do
   use ExUnit.Case, async: true
   require Logger
 
@@ -9,7 +9,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
 
     {:ok, processor} =
       start_supervised({
-        ALCHEMY.ProducerConsumers.TextProcessor,
+        DEMOALCHEMY.ProducerConsumers.TextProcessor,
         [
           name: test_name,
           chunk_size: 20,
@@ -38,7 +38,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
     file = "test/temp_#{:erlang.unique_integer()}.txt"
     File.write!(file, content)
 
-    file_item = %ALCHEMY.FileItem{
+    file_item = %DEMOALCHEMY.FileItem{
       filename: Path.basename(file),
       filelocation: file,
       timestamp: DateTime.utc_now()
@@ -49,7 +49,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
     assert_receive {:events, chunks}, 1000
 
     Enum.each(chunks, fn chunk ->
-      assert %ALCHEMY.ChunkItem{} = chunk
+      assert %DEMOALCHEMY.ChunkItem{} = chunk
       assert is_binary(chunk.chunk)
       assert String.length(chunk.chunk) <= 20
       assert chunk.timestamp != nil
@@ -62,7 +62,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
     file = "test/temp_#{:erlang.unique_integer()}.txt"
     File.write!(file, "")
 
-    file_item = %ALCHEMY.FileItem{
+    file_item = %DEMOALCHEMY.FileItem{
       filename: Path.basename(file),
       filelocation: file,
       timestamp: DateTime.utc_now()
@@ -76,7 +76,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
   end
 
   test "handles non-existent files", %{producer: producer} do
-    file_item = %ALCHEMY.FileItem{
+    file_item = %DEMOALCHEMY.FileItem{
       filename: "non_existent.txt",
       filelocation: "non_existent.txt",
       timestamp: DateTime.utc_now()
@@ -92,7 +92,7 @@ defmodule ALCHEMY.ProducerConsumers.TextProcessorTest do
     file = "test/temp_#{:erlang.unique_integer()}.txt"
     File.write!(file, content)
 
-    file_item = %ALCHEMY.FileItem{
+    file_item = %DEMOALCHEMY.FileItem{
       filename: Path.basename(file),
       filelocation: file,
       timestamp: DateTime.utc_now()
