@@ -1,8 +1,8 @@
-defmodule ALCHEMY do
+defmodule DEMOALCHEMY do
   use Application
 
   @impl true
   def start(_type, _args) do
-    ALCHEMY.Supervisor.start_link(name: ALCHEMY.Supervisor)
+    DEMOALCHEMY.Supervisor.start_link(name: DEMOALCHEMY.Supervisor)
   end
 end

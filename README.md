@@ -1,4 +1,4 @@
-# ALCHEMY
+# DEMOALCHEMY
 
 This is a project I have used for learning about running LLM locally with the ability to extend the LLM cutoff knowledge. This should be fine to run on your own device as long as you choose a LLM model fitting you local specs.
 
@@ -26,16 +26,16 @@ iex -S mix
 
 ```elixir
 # run a query (without streaming response)
-ALCHEMY.LlmQueryServer.query("hello")
+DEMOALCHEMY.LlmQueryServer.query("hello")
 
 # run a query with added context (without streaming response)
-ALCHEMY.LlmQueryServer.query_with_context("hello")
+DEMOALCHEMY.LlmQueryServer.query_with_context("hello")
 
 # run a query with streaming response
-ALCHEMY.LlmQueryServer.stream("What is my name?")
+DEMOALCHEMY.LlmQueryServer.stream("What is my name?")
 
 # run a query with added context and streaming response
-ALCHEMY.LlmQueryServer.stream_with_context("What is my name?")
+DEMOALCHEMY.LlmQueryServer.stream_with_context("What is my name?")
 ```
 
 ## Adding context

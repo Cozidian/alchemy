@@ -1,9 +1,9 @@
-defmodule ALCHEMY.MixProject do
+defmodule DEMOALCHEMY.MixProject do
   use Mix.Project
 
   def project do
     [
-      app: :alchemy,
+      app: :demo_alchemy,
       version: "0.1.0",
       elixir: "~> 1.18",
       start_permanent: Mix.env() == :prod,
@@ -15,7 +15,7 @@ defmodule ALCHEMY.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      mod: {ALCHEMY, []}
+      mod: {DEMOALCHEMY, []}
     ]
   end
 
